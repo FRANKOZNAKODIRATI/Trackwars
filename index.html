@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>All Active War Countdowns</title>
+<style>
+  body {
+    background-color: #121212;
+    color: white;
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 20px;
+  }
+  h1, h2 {
+    text-align: center;
+    margin-bottom: 10px;
+  }
+  #filter {
+    text-align: center;
+    margin-bottom: 20px;
+  }
+  select {
+    padding: 8px 12px;
+    font-size: 1rem;
+    background-color: #1e1e1e;
+    color: white;
+    border: 1px solid #333;
+    border-radius: 6px;
+  }
+  .war {
+    border: 1px solid #333;
+    border-radius: 12px;
+    padding: 20px;
+    margin: 20px auto;
+    max-width: 600px;
+    background-color: #1e1e1e;
+    text-align: center;
+  }
+  .war-title {
+    font-size: 1.5rem;
+    margin-bottom: 5px;
+  }
+  .countdown {
+    font-size: 1.2rem;
+    margin: 6px 0;
+  }
+  .status, .sides {
+    margin-top: 6px;
+    font-size: 0.95rem;
+    color: #ccc;
+  }
+  .bar-wrapper {
+    position: relative;
+    width: 100%;
+    max-width: 380px;
+    margin: 12px auto 0;
+    height: 32px;
+    border-radius: 18px;
+    overflow: hidden;
+  }
+  .bar-dynamic {
+    width: 100%;
+    height: 100%;
+    border-radius: 18px;
+    transition: background 1s ease-in-out;
+  }
+</style>
+</head>
+<body>
+<h1>All Active War Countdowns</h1>
+<div id="counter"></div>
+
+<!-- Filter Dropdown -->
+<div id="filter">
+  <label for="continentSelect">Filter by Continent:</label>
+  <select id="continentSelect">
+    <option value="All">All</option>
+    <option value="Africa">Africa</option>
+    <option value="Asia">Asia</option>
+    <option value="Europe">Europe</option>
+    <option value="Middle East">Middle East</option>
+    <option value="Americas">Americas</option>
+  </select>
+</div>
+
+<!-- Global Tension Level -->
+<div style="text-align:center; font-size:1rem; margin-bottom:6px;">Global Tension Level</div>
+<div class="bar-wrapper">
+  <div id="globalBar" class="bar-dynamic"></div>
+</div>
+
+<div id="wars"></div>
+
+<script>
+const wars = [
+  {
+    title: 'Kashmir Conflict',
+    startDate: '1947-10-22T00:00:00Z',
+    status: 'Longstanding territorial dispute',
+    dangerLevel: 70,
+    continent: 'Asia',
+    allies: {
+      sideA: ['India'],
+      sideB: ['Pakistan', 'Kashmiri Militants']
+    }
+  },
+  {
+    title: 'North Korea Situation',
+    startDate: '1953-07-27T00:00:00Z',
+    status: 'Frozen conflict, occasional flare-ups',
+    dangerLevel: 65,
+    continent: 'Asia',
+    allies: {
+      sideA: ['South Korea', 'USA', 'UN'],
+      sideB: ['North Korea', 'China', 'Russia']
+    }
+  },
+  {
+    title: 'Western Sahara Conflict',
+    startDate: '1975-11-06T00:00:00Z',
+    status: 'Frozen dispute with sporadic violence',
+    dangerLevel: 40,
+    continent: 'Africa',
+    allies: {
+      sideA: ['Sahrawi Arab Democratic Republic'],
+      sideB: ['Morocco']
+    }
+  },
+  {
+    title: 'Cyprus Dispute',
+    startDate: '1974-07-20T00:00:00Z',
+    status: 'Divided island with frozen conflict',
+    dangerLevel: 40,
+    continent: 'Europe',
+    allies: {
+      sideA: ['Republic of Cyprus', 'Greece'],
+      sideB: ['Northern Cyprus', 'Turkey']
+    }
+  },
+  {
+    title: 'Kurdish Conflict',
+    startDate: '1984-08-15T00:00:00Z',
+    status: 'Ongoing insurgency and territorial disputes',
+    dangerLevel: 55,
+    continent: 'Middle East',
+    allies: {
+      sideA: ['Kurdish Groups', 'Iraq', 'Syria'],
+      sideB: ['Turkey', 'Iran']
+    }
+  },
+  {
+    title: 'Colombian Conflict',
+    startDate: '1964-05-27T00:00:00Z',
+    status: 'FARC peace deal fragile, other armed groups active',
+    dangerLevel: 50,
+    continent: 'Americas',
+    allies: {
+      sideA: ['Colombian Gov', 'FARC Dissidents'],
+      sideB: ['ELN', 'Criminal Gangs']
+    }
+  },
+  {
+    title: 'Transnistria Frozen Conflict',
+    startDate: '1990-03-02T00:00:00Z',
+    status: 'De facto independent breakaway region',
+    dangerLevel: 40,
+    continent: 'Europe',
+    allies: {
+      sideA: ['Moldova'],
+      sideB: ['Transnistria', 'Russia']
+    }
+  },
+  {
+    title: 'Donbass Conflict',
+    startDate: '2014-04-06T00:00:00Z',
+    status: 'War in eastern Ukraine',
+    dangerLevel: 80,
+    continent: 'Europe',
+    allies: {
+      sideA: ['Ukraine'],
+      sideB: ['Donetsk & Luhansk People\'s Republics', 'Russia']
+    }
+  },
+  {
+    title: 'Georgia–Russia Tensions',
+    startDate: '2008-08-07T00:00:00Z',
+    status: 'Frozen conflict with Abkhazia and South Ossetia',
+    dangerLevel: 50,
+    continent: 'Europe',
+    allies: {
+      sideA: ['Georgia'],
+      sideB: ['Russia', 'Separatists']
+    }
+  },
+  {
+    title: 'Syrian Civil War',
+    startDate: '2011-03-15T00:00:00Z',
+    status: 'Protracted multi-faction conflict',
+    dangerLevel: 80,
+    continent: 'Middle East',
+    allies: {
+      sideA: ['Syrian Government', 'Russia', 'Iran'],
+      sideB: ['Rebels', 'Turkey', 'US-backed Forces']
+    }
+  },
+  {
+    title: 'Israel vs Iran',
+    startDate: '2025-06-13T00:00:00Z',
+    status: 'Close to WW3',
+    dangerLevel: 90,
+    continent: 'Middle East',
+    allies: {
+      sideA: ['Israel', 'USA'],
+      sideB: ['Iran', 'Hezbollah']
+    }
+  },
+  {
+    title: 'Ukraine vs Russia',
+    startDate: '2014-02-20T00:00:00Z',
+    status: 'High global tension',
+    dangerLevel: 85,
+    continent: 'Europe',
+    allies: {
+      sideA: ['Ukraine', 'EU', 'USA'],
+      sideB: ['Russia', 'Belarus']
+    }
+  },
+  {
+    title: 'Sudanese Civil War',
+    startDate: '2023-04-15T00:00:00Z',
+    status: 'Far from peace',
+    dangerLevel: 70,
+    continent: 'Africa',
+    allies: {
+      sideA: ['Sudanese Army'],
+      sideB: ['Rapid Support Forces']
+    }
+  },
+  {
+    title: 'Myanmar Civil War',
+    startDate: '2021-02-01T00:00:00Z',
+    status: 'No peace progress',
+    dangerLevel: 60,
+    continent: 'Asia',
+    allies: {
+      sideA: ['Military Junta'],
+      sideB: ['PDF', 'Ethnic Militias']
+    }
+  },
+  {
+    title: 'Haiti Gang War',
+    startDate: '2020-01-01T00:00:00Z',
+    status: 'Total breakdown',
+    dangerLevel: 60,
+    continent: 'Americas',
+    allies: {
+      sideA: ['Gov Forces'],
+      sideB: ['Gangs']
+    }
+  },
+  {
+    title: 'China–Taiwan Tension',
+    startDate: '2022-01-01T00:00:00Z',
+    status: 'Tense standoff',
+    dangerLevel: 75,
+    continent: 'Asia',
+    allies: {
+      sideA: ['Taiwan', 'USA', 'Japan'],
+      sideB: ['China']
+    }
+  },
+  {
+    title: 'Yemen Civil War',
+    startDate: '2014-09-19T00:00:00Z',
+    status: 'Severe humanitarian crisis',
+    dangerLevel: 80,
+    continent: 'Middle East',
+    allies: {
+      sideA: ['Hadi Government', 'Saudi Arabia', 'UAE'],
+      sideB: ['Houthis', 'Iran']
+    }
+  },
+  {
+    title: 'Afghanistan Conflict',
+    startDate: '2001-10-07T00:00:00Z',
+    status: 'Taliban regained control, insurgency ongoing',
+    dangerLevel: 70,
+    continent: 'Asia',
+    allies: {
+      sideA: ['Taliban'],
+      sideB: ['Afghan Resistance', 'ISIS-K']
+    }
+  },
+  {
+    title: 'Ethiopian Tigray Conflict',
+    startDate: '2020-11-04T00:00:00Z',
+    status: 'Intermittent fighting, humanitarian issues',
+    dangerLevel: 75,
+    continent: 'Africa',
+    allies: {
+      sideA: ['Ethiopian Gov', 'Eritrea'],
+      sideB: ['Tigray Forces']
+    }
+  },
+  {
+    title: 'Nagorno-Karabakh Conflict',
+    startDate: '1988-02-20T00:00:00Z',
+    status: 'Frozen conflict, occasional clashes',
+    dangerLevel: 60,
+    continent: 'Europe',
+    allies: {
+      sideA: ['Armenia', 'Nagorno-Karabakh'],
+      sideB: ['Azerbaijan', 'Turkey']
+    }
+  },
+  {
+    title: 'Libya Civil War',
+    startDate: '2014-07-13T00:00:00Z',
+    status: 'Ongoing factions battle for control',
+    dangerLevel: 65,
+    continent: 'Africa',
+    allies: {
+      sideA: ['Government of National Accord', 'UN-backed'],
+      sideB: ['Libyan National Army', 'Egypt', 'Russia']
+    }
+  },
+  {
+    title: 'South China Sea Disputes',
+    startDate: '2010-01-01T00:00:00Z',
+    status: 'Maritime territorial disputes',
+    dangerLevel: 55,
+    continent: 'Asia',
+    allies: {
+      sideA: ['China'],
+      sideB: ['Philippines', 'Vietnam', 'Malaysia', 'Brunei', 'Taiwan']
+    }
+  },
+  {
+    title: 'Mexican Drug War',
+    startDate: '2006-12-11T00:00:00Z',
+    status: 'Violence between cartels and government',
+    dangerLevel: 60,
+    continent: 'Americas',
+    allies: {
+      sideA: ['Mexican Gov', 'Federal Police'],
+      sideB: ['Drug Cartels']
+    }
+  },
+  {
+    title: 'Somalia Conflict',
+    startDate: '1991-01-01T00:00:00Z',
+    status: 'Factional fighting and Islamist insurgency',
+    dangerLevel: 65,
+    continent: 'Africa',
+    allies: {
+      sideA: ['Federal Gov', 'African Union'],
+      sideB: ['Al-Shabaab', 'Clan Militias']
+    }
+  },
+  {
+    title: 'Central African Republic Conflict',
+    startDate: '2012-03-24T00:00:00Z',
+    status: 'Sectarian violence and civil war',
+    dangerLevel: 55,
+    continent: 'Africa',
+    allies: {
+      sideA: ['Government', 'UN Peacekeepers'],
+      sideB: ['Rebel Groups']
+    }
+  },
+  {
+    title: 'Boko Haram Insurgency',
+    startDate: '2009-07-01T00:00:00Z',
+    status: 'Jihadist insurgency in Nigeria and neighbors',
+    dangerLevel: 65,
+    continent: 'Africa',
+    allies: {
+      sideA: ['Nigeria', 'Cameroon', 'Chad', 'Niger'],
+      sideB: ['Boko Haram', 'ISWAP']
+    }
+  },
+  {
+    title: 'Venezuela Political Crisis',
+    startDate: '2013-01-10T00:00:00Z',
+    status: 'Political instability with violence',
+    dangerLevel: 50,
+    continent: 'Americas',
+    allies: {
+      sideA: ['Nicolas Maduro Government'],
+      sideB: ['Opposition', 'Paramilitary Groups']
+    }
+  },
+  {
+    title: 'Mali Conflict',
+    startDate: '2012-01-17T00:00:00Z',
+    status: 'Islamist insurgency and military intervention',
+    dangerLevel: 60,
+    continent: 'Africa',
+    allies: {
+      sideA: ['Malian Gov', 'France', 'UN'],
+      sideB: ['Islamist Groups', 'Tuareg Rebels']
+    }
+  },
+  {
+    title: 'Kosovo-Serbia Tension',
+    startDate: '1998-02-28T00:00:00Z',
+    status: 'Frozen dispute with occasional clashes',
+    dangerLevel: 50,
+    continent: 'Europe',
+    allies: {
+      sideA: ['Kosovo', 'Albania', 'USA', 'EU'],
+      sideB: ['Serbia', 'Russia']
+    }
+  }
+];
+
+// Sort wars by startDate ascending (oldest first)
+wars.sort((a, b) => new Date(a.startDate) - new Date(b.startDate));
+
+function formatDuration(ms, start) {
+  const now = new Date();
+  const durationMs = now - start;
+  const totalSeconds = Math.floor(durationMs / 1000);
+  const totalDays = Math.floor(durationMs / (1000 * 60 * 60 * 24));
+  const years = Math.floor(totalDays / 365);
+
+  if (years >= 1) {
+    const months = Math.floor((totalDays % 365) / 30);
+    const days = totalDays % 30;
+    return `${years}y ${months}m ${days}d since war began`;
+  } else {
+    const months = Math.floor(totalDays / 30);
+    const days = totalDays % 30;
+    const seconds = totalSeconds % 60;
+    return `${months}m ${days}d ${seconds}s since war began`;
+  }
+}
+
+function createWarElement(war, index) {
+  const div = document.createElement('div');
+  div.className = 'war';
+  div.setAttribute('data-continent', war.continent);
+
+  div.innerHTML = `
+    <div class="war-title">${war.title}</div>
+    <div class="countdown" id="countdown${index}">Loading...</div>
+    <div class="status">Status: ${war.status}</div>
+    <div class="sides">Side A: ${war.allies.sideA.join(', ')}</div>
+    <div class="sides">Side B: ${war.allies.sideB.join(', ')}</div>
+    <div class="bar-wrapper">
+      <div id="bar${index}" class="bar-dynamic"></div>
+    </div>
+  `;
+
+  return div;
+}
+
+function updateCountdowns() {
+  const now = new Date();
+  wars.forEach((war, i) => {
+    const start = new Date(war.startDate);
+    document.getElementById(`countdown${i}`).textContent = formatDuration(now - start, start);
+  });
+}
+
+const container = document.getElementById('wars');
+container.innerHTML = '';
+wars.forEach((war, i) => {
+  container.appendChild(createWarElement(war, i));
+});
+
+updateCountdowns();
+setInterval(updateCountdowns, 1000);
+
+// Update danger bars without indicator lines
+wars.forEach((war, i) => {
+  const danger = Math.min(100, Math.max(0, war.dangerLevel));
+  const green = 100 - danger;
+  const bar = document.getElementById(`bar${i}`);
+  setTimeout(() => {
+    bar.style.background = `linear-gradient(to right, green 0%, green calc(${green}% - 1px), red calc(${green}% + 1px), red 100%)`;
+  }, 100);
+});
+
+// Global Tension Bar (no indicator line)
+const avg = wars.reduce((sum, w) => sum + w.dangerLevel, 0) / wars.length;
+const globalGreen = 100 - avg;
+setTimeout(() => {
+  document.getElementById('globalBar').style.background =
+    `linear-gradient(to right, green 0%, green calc(${globalGreen}% - 1px), red calc(${globalGreen}% + 1px), red 100%)`;
+}, 100);
+
+// Filter by continent
+const select = document.getElementById('continentSelect');
+select.addEventListener('change', () => {
+  const selected = select.value;
+  const warDivs = document.querySelectorAll('.war');
+  warDivs.forEach(div => {
+    if (selected === 'All' || div.getAttribute('data-continent') === selected) {
+      div.style.display = 'block';	
+    } else {
+      div.style.display = 'none';
+    }
+  });
+});
+
+document.getElementById('counter').textContent = `${wars.length} active wars/conflicts tracked`;
+</script>
+</body>
+</html>
